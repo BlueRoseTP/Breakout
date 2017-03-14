@@ -30,12 +30,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)
     {
-        
+        for touch in touches
+        {
+            let location = touch.location(in: self)
+            paddle.position.x = location.x
+        }
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?)
     {
-        
+        for touch in touches
+        {
+            let location = touch.location(in: self)
+            paddle.position.x = location.x
+        }
     }
     
     func createBackground()

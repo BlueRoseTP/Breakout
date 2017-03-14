@@ -9,7 +9,7 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene
+class GameScene: SKScene, SKPhysicsContactDelegate
 {
     var ball = SKShapeNode()
     var paddle = SKSpriteNode()
@@ -22,6 +22,10 @@ class GameScene: SKScene
         makePaddle()
         makeBrick()
         makeLoseZone()
+        physicsWorld.contactDelegate = self
+        self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
+        ball.physicsBody?.isDynamic = true
+        ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 3))
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)

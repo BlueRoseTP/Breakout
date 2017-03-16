@@ -14,9 +14,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     var ball = SKShapeNode()
     var paddle = SKSpriteNode()
     var brick = SKSpriteNode()
+    var label : SKLabelNode!
     
     override func didMove(to view: SKView)
     {
+        label = SKLabelNode(fontNamed: "Marker Felt")
+        label.fontColor = UIColor.red
+        label.text = "Press to Start"
+        label.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
+        label.name = "start"
+        addChild(label)
         createBackground()
         makeBall()
         makePaddle()
@@ -24,8 +31,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         makeLoseZone()
         physicsWorld.contactDelegate = self
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
-        ball.physicsBody?.isDynamic = true
-        ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 3))
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)
@@ -33,6 +38,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         for touch in touches
         {
             let location = touch.location(in: self)
+            if label.contains(location)
+            {
+                label.alpha = 0
+                ball.physicsBody?.isDynamic = true
+                ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 3))
+            }
             paddle.position.x = location.x
         }
     }

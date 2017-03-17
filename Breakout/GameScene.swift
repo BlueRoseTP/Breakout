@@ -15,22 +15,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     var paddle = SKSpriteNode()
     var brick = SKSpriteNode()
     var label : SKLabelNode!
+    var lives : Int = 0
+    var livesLabel : SKLabelNode!
     
     override func didMove(to view: SKView)
     {
-        label = SKLabelNode(fontNamed: "Marker Felt")
-        label.fontColor = UIColor.red
-        label.text = "Press to Start"
-        label.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
-        label.name = "start"
-        addChild(label)
-        createBackground()
-        makeBall()
-        makePaddle()
-        makeBrick()
-        makeLoseZone()
-        physicsWorld.contactDelegate = self
-        self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
+        reset()
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)
@@ -38,11 +28,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         for touch in touches
         {
             let location = touch.location(in: self)
-            if label.contains(location)
+            if label.contains(location) && label.name == "start"
             {
                 label.alpha = 0
                 ball.physicsBody?.isDynamic = true
                 ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 3))
+                label.name = "default"
+            }
+            if label.contains(location) && label.name == "restart"
+            {
+                reset()
             }
             paddle.position.x = location.x
         }
@@ -67,8 +62,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         }
         if contact.bodyA.node?.name == "loseZone" || contact.bodyB.node?.name == "loseZone"
         {
-            print("You lose!")
             ball.removeFromParent()
+            lives = lives - 1
+            updateLives()
+            if(lives == 0)
+            {
+                label.text = "Game Over"
+                label.name = "replay"
+                label.alpha = 1
+                return
+            }
+            makeBall()
+            ball.physicsBody?.isDynamic = true
+            ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 3))
         }
     }
     
@@ -143,5 +149,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         loseZone.physicsBody = SKPhysicsBody(rectangleOf: loseZone.size)
         loseZone.physicsBody?.isDynamic = false
         addChild(loseZone)
+    }
+    
+    func startButton()
+    {
+        label = SKLabelNode(fontNamed: "Marker Felt")
+        label.fontColor = UIColor.red
+        label.text = "Press to Start"
+        label.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
+        label.name = "start"
+        addChild(label)
+    }
+    
+    func createLivesLabel()
+    {
+        livesLabel = SKLabelNode(fontNamed: "Marker Felt")
+        livesLabel.fontColor = UIColor.blue
+        livesLabel.text = ""
+        livesLabel.position = CGPoint(x: self.frame.maxX - 50, y: self.frame.minY + 25)
+        livesLabel.fontSize = 18
+        addChild(livesLabel)
+    }
+    
+    func updateLives()
+    {
+        livesLabel.text = "Lives: \(lives)"
+    }
+    
+    func reset()
+    {
+        startButton()
+        createBackground()
+        lives = 3
+        createLivesLabel()
+        updateLives()
+        makeBall()
+        makePaddle()
+        makeBrick()
+        makeLoseZone()
+        physicsWorld.contactDelegate = self
+        self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
     }
 }

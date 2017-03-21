@@ -58,21 +58,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         {
             if contact.bodyA.node?.name == "brick"
             {
-                let hitBrick = contact.bodyA.node
-                for i in 0 ... bricks.count {
-                    if bricks[i] == hitBrick
+                let location = contact.contactPoint
+                for i in 0 ... bricks.count - 2
+                {
+                    if bricks[i].contains(location)
                     {
+                        contact.bodyA.node?.removeFromParent()
                         bricks.remove(at: i)
                     }
                 }
             }
             if contact.bodyB.node?.name == "brick"
             {
-                let hitBrick = contact.bodyB.node
-                for i in 0 ... bricks.count
+                let location = contact.contactPoint
+                for i in 0 ... bricks.count - 2
                 {
-                    if bricks[i] == hitBrick
+                    if bricks[i].contains(location)
                     {
+                        contact.bodyB.node?.removeFromParent()
                         bricks.remove(at: i)
                     }
                 }
@@ -163,16 +166,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     func makeBricks()
     {
         let xInt = (Int)(frame.maxX / 5)
+        let yInt = (Int)(frame.height / 25)
         for i in 0 ... 4
         {
-            for j in 0 ... 5
+            for j in 0 ... 9
             {
-                let brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: xInt - 10, height: (Int)(frame.height / 25) - 10))
-                brick.position = CGPoint(x: xInt * j, y: (Int)(frame.maxY) - 30 * i)
+                let brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: xInt - 5, height: (Int)(yInt - 5)))
+                brick.position = CGPoint(x: Int(frame.minX) + xInt * j + xInt / 2, y: (Int)(frame.maxY) - 30 * i - yInt / 2)
                 brick.name = "brick"
                 brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
                 brick.physicsBody?.isDynamic = false
-                print(brick)
+                addChild(brick)
                 bricks.append(brick)
             }
         }

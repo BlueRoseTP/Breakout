@@ -18,6 +18,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     var lives : Int = 0
     var livesLabel : SKLabelNode!
     var level : Int = 0
+    var scoreLabel : SKLabelNode!
+    var score : Int = 0
     
     override func didMove(to view: SKView)
     {
@@ -25,6 +27,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         makePaddle()
         makeLoseZone()
         createLivesLabel()
+        createScoreLabel()
         createBackground()
         reset()
     }
@@ -45,6 +48,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate
             {
                 reset()
             }
+            if label.contains(location) && label.name == "nextLevel"
+            {
+                makeBall()
+                makeBricks(lvl: level)
+                label.name = "default"
+                label.alpha = 0
+                ball.physicsBody?.isDynamic = true
+                ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 3))
+            }
             paddle.position.x = location.x
         }
     }
@@ -64,25 +76,49 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         {
             if contact.bodyA.node!.name == "brick"
             {
-                let node = contact.bodyA.node
+                let node : SKSpriteNode = contact.bodyA.node as! SKSpriteNode
+                if node.color == UIColor.orange
+                {
+                    node.color = UIColor.green
+                    return
+                }
+                if node.color == UIColor.green
+                {
+                    node.color = UIColor.blue
+                    return
+                }
                 for (index, entry) in bricks.enumerated()
                 {
-                    if entry.isEqual(to: node!)
+                    if entry.isEqual(to: node)
                     {
                         contact.bodyA.node!.removeFromParent()
                         bricks.remove(at: index)
+                        score = score + 10
+                        updateScore()
                     }
                 }
             }
             if contact.bodyB.node!.name == "brick"
             {
-                let node = contact.bodyB.node
+                let node : SKSpriteNode = contact.bodyB.node as! SKSpriteNode
+                if node.color == UIColor.orange
+                {
+                    node.color = UIColor.green
+                    return
+                }
+                if node.color == UIColor.green
+                {
+                    node.color = UIColor.blue
+                    return
+                }
                 for (index, entry) in bricks.enumerated()
                 {
-                    if entry.isEqual(to: node!)
+                    if entry.isEqual(to: node)
                     {
                         contact.bodyB.node!.removeFromParent()
                         bricks.remove(at: index)
+                        score = score + 10
+                        updateScore()
                     }
                 }
             }
@@ -179,12 +215,64 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     {
         let xInt = (Int)(frame.maxX / 5)
         let yInt = (Int)(frame.height / 25)
-        for i in 0 ... 4
+        if lvl == 1
         {
-            for j in 0 ... 4
+            for i in 0 ... 4
+            {
+                for j in 0 ... 4
+                {
+                    let brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: Int(1.75 * Double(xInt)), height: (Int)(yInt - 5)))
+                    brick.position = CGPoint(x: Int(frame.minX) + 2 * xInt * j + xInt, y: (Int)(frame.maxY) - 30 * i - yInt / 2)
+                    brick.name = "brick"
+                    brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
+                    brick.physicsBody?.isDynamic = false
+                    addChild(brick)
+                    bricks.append(brick)
+                }
+            }
+        }
+        if lvl == 0
+        {
+            for i in 0 ... 2
+            {
+                for j in i ... 4 - i
+                {
+                    let brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: Int(1.75 * Double(xInt)), height: (Int)(yInt - 5)))
+                    brick.position = CGPoint(x: Int(frame.minX) + 2 * xInt * j + xInt, y: (Int)(frame.maxY) - 30 * i - yInt / 2)
+                    brick.name = "brick"
+                    brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
+                    brick.physicsBody?.isDynamic = false
+                    addChild(brick)
+                    bricks.append(brick)
+                }
+            }
+        }
+        if lvl == 2
+        {
+            for i in 0 ... 4
             {
                 let brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: Int(1.75 * Double(xInt)), height: (Int)(yInt - 5)))
-                brick.position = CGPoint(x: Int(frame.minX) + 2 * xInt * j + xInt, y: (Int)(frame.maxY) - 30 * i - yInt / 2)
+                brick.position = CGPoint(x: Int(frame.minX) + 2 * xInt * i + xInt, y: (Int)(frame.maxY) - 30 * 0 - yInt / 2)
+                brick.name = "brick"
+                brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
+                brick.physicsBody?.isDynamic = false
+                addChild(brick)
+                bricks.append(brick)
+            }
+            for i in 0 ... 4
+            {
+                let brick = SKSpriteNode(color: UIColor.green, size: CGSize(width: Int(1.75 * Double(xInt)), height: (Int)(yInt - 5)))
+                brick.position = CGPoint(x: Int(frame.minX) + 2 * xInt * i + xInt, y: (Int)(frame.maxY) - 30 * 1 - yInt / 2)
+                brick.name = "brick"
+                brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
+                brick.physicsBody?.isDynamic = false
+                addChild(brick)
+                bricks.append(brick)
+            }
+            for i in 0 ... 4
+            {
+                let brick = SKSpriteNode(color: UIColor.orange, size: CGSize(width: Int(1.75 * Double(xInt)), height: (Int)(yInt - 5)))
+                brick.position = CGPoint(x: Int(frame.minX) + 2 * xInt * i + xInt, y: (Int)(frame.maxY) - 30 * 2 - yInt / 2)
                 brick.name = "brick"
                 brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
                 brick.physicsBody?.isDynamic = false
@@ -233,8 +321,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     {
         lives = 3
         level = 0
+        score = 0
         updateLives()
+        updateScore()
         makeBall()
+        for entry in bricks
+        {
+            entry.removeFromParent()
+        }
+        bricks.removeAll(keepingCapacity: true)
         makeBricks(lvl: level)
         labelToStart()
         physicsWorld.contactDelegate = self
@@ -243,15 +338,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     
     func winner()
     {
-        if(level > 0)
+        if(level > 2)
         {
-            label.text = "You Beat All the Levels! Congrats!"
+            label.text = "You Win! Congrats!"
             label.alpha = 1
             label.name = "restart"
         }
         else
         {
-            label.text = "You Win! Tap to Play Next Level."
+            label.text = "You Win! Tap for Next Level."
             label.name = "nextLevel"
             label.alpha = 1
         }
@@ -261,5 +356,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     {
         label.text = "Press to Start"
         label.name = "start"
+    }
+    
+    func createScoreLabel()
+    {
+        scoreLabel = SKLabelNode(fontNamed: "Marker Felt")
+        scoreLabel.fontColor = UIColor.blue
+        scoreLabel.text = ""
+        scoreLabel.position = CGPoint(x: self.frame.minX + 50, y: self.frame.minY + 25)
+        scoreLabel.fontSize = 18
+        addChild(scoreLabel)
+    }
+    
+    func updateScore()
+    {
+        scoreLabel.text = "Score: \(score)"
     }
 }

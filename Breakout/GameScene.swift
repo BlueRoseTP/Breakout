@@ -17,9 +17,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     var label : SKLabelNode!
     var lives : Int = 0
     var livesLabel : SKLabelNode!
+    var level : Int = 0
     
     override func didMove(to view: SKView)
     {
+        startButton()
+        makePaddle()
+        makeLoseZone()
+        createLivesLabel()
+        createBackground()
         reset()
     }
     
@@ -54,31 +60,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     
     func didBegin(_ contact: SKPhysicsContact)
     {
-        if contact.bodyA.node?.name == "brick" || contact.bodyB.node?.name == "brick"
+        if contact.bodyA.node!.name == "brick" || contact.bodyB.node!.name == "brick"
         {
-            if contact.bodyA.node?.name == "brick"
+            if contact.bodyA.node!.name == "brick"
             {
-                let location = contact.contactPoint
-                for i in 0 ... bricks.count - 2
+                let node = contact.bodyA.node
+                for (index, entry) in bricks.enumerated()
                 {
-                    if bricks[i].contains(location)
+                    if entry.isEqual(to: node!)
                     {
-                        contact.bodyA.node?.removeFromParent()
-                        bricks.remove(at: i)
+                        contact.bodyA.node!.removeFromParent()
+                        bricks.remove(at: index)
                     }
                 }
             }
-            if contact.bodyB.node?.name == "brick"
+            if contact.bodyB.node!.name == "brick"
             {
-                let location = contact.contactPoint
-                for i in 0 ... bricks.count - 2
+                let node = contact.bodyB.node
+                for (index, entry) in bricks.enumerated()
                 {
-                    if bricks[i].contains(location)
+                    if entry.isEqual(to: node!)
                     {
-                        contact.bodyB.node?.removeFromParent()
-                        bricks.remove(at: i)
+                        contact.bodyB.node!.removeFromParent()
+                        bricks.remove(at: index)
                     }
                 }
+            }
+            if bricks.count == 0
+            {
+                ball.removeFromParent()
+                level = level + 1
+                winner()
             }
         }
         if contact.bodyA.node?.name == "loseZone" || contact.bodyB.node?.name == "loseZone"
@@ -89,7 +101,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate
             if(lives == 0)
             {
                 label.text = "Game Over"
-                label.name = "replay"
+                label.name = "restart"
                 label.alpha = 1
                 return
             }
@@ -163,16 +175,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         addChild(brick)
     }
     
-    func makeBricks()
+    func makeBricks(lvl : Int)
     {
         let xInt = (Int)(frame.maxX / 5)
         let yInt = (Int)(frame.height / 25)
         for i in 0 ... 4
         {
-            for j in 0 ... 9
+            for j in 0 ... 4
             {
-                let brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: xInt - 5, height: (Int)(yInt - 5)))
-                brick.position = CGPoint(x: Int(frame.minX) + xInt * j + xInt / 2, y: (Int)(frame.maxY) - 30 * i - yInt / 2)
+                let brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: Int(1.75 * Double(xInt)), height: (Int)(yInt - 5)))
+                brick.position = CGPoint(x: Int(frame.minX) + 2 * xInt * j + xInt, y: (Int)(frame.maxY) - 30 * i - yInt / 2)
                 brick.name = "brick"
                 brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
                 brick.physicsBody?.isDynamic = false
@@ -219,16 +231,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     
     func reset()
     {
-        startButton()
-        createBackground()
         lives = 3
-        createLivesLabel()
+        level = 0
         updateLives()
         makeBall()
-        makePaddle()
-        makeBricks()
-        makeLoseZone()
+        makeBricks(lvl: level)
+        labelToStart()
         physicsWorld.contactDelegate = self
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
+    }
+    
+    func winner()
+    {
+        if(level > 0)
+        {
+            label.text = "You Beat All the Levels! Congrats!"
+            label.alpha = 1
+            label.name = "restart"
+        }
+        else
+        {
+            label.text = "You Win! Tap to Play Next Level."
+            label.name = "nextLevel"
+            label.alpha = 1
+        }
+    }
+    
+    func labelToStart()
+    {
+        label.text = "Press to Start"
+        label.name = "start"
     }
 }
